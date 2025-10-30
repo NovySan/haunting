@@ -1,1 +1,544 @@
-foo
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNL Paranormal Research Team - Case Files</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glitch effect */
+        @keyframes glitch {
+            0%, 100% { text-shadow: 2px 0 red, -2px 0 cyan; }
+            25% { text-shadow: -2px 0 red, 2px 0 cyan; }
+            50% { text-shadow: 2px 0 cyan, -2px 0 red; }
+            75% { text-shadow: -2px 0 cyan, 2px 0 red; }
+        }
+
+        /* Static noise background */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" /></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.05"/></svg>');
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            border-bottom: 2px solid #333;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #ff3333;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            animation: glitch 3s infinite;
+            margin-bottom: 10px;
+        }
+
+        .warning {
+            background: #330000;
+            border: 1px solid #ff0000;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+            color: #ff6666;
+            font-size: 0.9em;
+        }
+
+        .status {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+            background: #1a0000;
+            border-left: 3px solid #ff0000;
+        }
+
+        .members {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .member-card {
+            background: #111;
+            border: 1px solid #333;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .member-card:hover {
+            border-color: #ff3333;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(255, 51, 51, 0.2);
+        }
+
+        .member-card::before {
+            content: "CLASSIFIED";
+            position: absolute;
+            top: 10px;
+            right: -30px;
+            background: #ff0000;
+            color: #000;
+            padding: 2px 40px;
+            transform: rotate(45deg);
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        .member-name {
+            color: #ff6666;
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .member-role {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .last-seen {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .file-section {
+            display: none;
+            margin: 40px 0;
+            padding: 30px;
+            background: #0d0d0d;
+            border: 1px solid #333;
+        }
+
+        .file-section.active {
+            display: block;
+        }
+
+        .file-header {
+            border-bottom: 1px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+
+        .file-entry {
+            margin: 30px 0;
+            padding: 20px;
+            background: #111;
+            border-left: 3px solid #444;
+        }
+
+        .file-entry h3 {
+            color: #ff9999;
+            margin-bottom: 10px;
+        }
+
+        .timestamp {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+
+        .file-content {
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        .back-btn {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #ff3333;
+        }
+
+        .redacted {
+            background: #000;
+            color: #000;
+            padding: 0 5px;
+            cursor: help;
+        }
+
+        .redacted:hover {
+            color: #ff0000;
+            background: #1a0000;
+        }
+
+        /* Typing effect for warnings */
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            border-top: 1px solid #333;
+            color: #666;
+            font-size: 0.85em;
+        }
+
+        .haunting-location {
+            background: #111;
+            border: 1px solid #333;
+            padding: 15px;
+            transition: all 0.3s;
+        }
+
+        .haunting-location:hover {
+            border-color: #ff3333;
+            background: #1a0000;
+        }
+
+        #map-container img {
+            filter: brightness(0.8) contrast(1.2);
+            transition: all 0.3s;
+        }
+
+        #map-container img:hover {
+            filter: brightness(1) contrast(1.3);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>UNL Paranormal Research Team</h1>
+            <div class="warning">
+                ⚠️ RESTRICTED ACCESS - CASE FILES UNDER INVESTIGATION ⚠️
+            </div>
+            <div class="status">
+                STATUS: 3 MEMBERS MISSING | LAST CONTACT: OCTOBER 27, 2025 | LOCATION: DON L. LOVE MEMORIAL LIBRARY, UNL CAMPUS
+            </div>
+        </header>
+
+        <!-- Investigation Map Section -->
+        <div id="map-section" style="margin: 40px 0; padding: 30px; background: #0d0d0d; border: 2px solid #ff3333;">
+            <h2 style="color: #ff6666; text-align: center; margin-bottom: 20px;">ACTIVE INVESTIGATION SITES - LOVE LIBRARY</h2>
+            <div class="warning" style="background: #1a0000; border-color: #666;">
+                📍 Nine anomalous locations identified. Field investigation required.
+            </div>
+            <div id="map-container" style="margin: 20px 0; text-align: center;">
+                <img src="images/love-library-map.png" alt="Love Library Investigation Map" style="max-width: 100%; height: auto; border: 1px solid #333;">
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-top: 20px;">
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 1: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">Cold spots. Books rearranging.</p>
+                </div>
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 2: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">Shadow figures between shelves.</p>
+                </div>
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 3: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">EVP hotspot. Whispers recorded.</p>
+                </div>
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 4: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">Equipment malfunction zone.</p>
+                </div>
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 5: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">Time distortion reported.</p>
+                </div>
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 6: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">Phantom footsteps after midnight.</p>
+                </div>
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 7: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">Books open to specific pages.</p>
+                </div>
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 8: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">The Pattern first discovered here.</p>
+                </div>
+                <div class="haunting-location">
+                    <h4 style="color: #ff9999;">📍 Location 9: TK</h4>
+                    <p style="color: #888; font-size: 0.9em;">DO NOT ENTER ALONE.</p>
+                </div>
+            </div>
+            <div style="margin-top: 20px; padding: 15px; background: #1a0000; border-left: 3px solid #ff0000;">
+                <p style="color: #ff6666; font-weight: bold;">⚠️ FIELD INVESTIGATORS:</p>
+                <p style="color: #ccc; margin-top: 10px;">Visit all nine locations in any order. Document any anomalies. Look for The Pattern. The truth lies where the hauntings converge.</p>
+            </div>
+        </div>
+
+        <main id="main-content">
+            <div id="member-list">
+                <h2 style="text-align: center; margin-bottom: 30px; color: #ff6666;">Missing Team Members - Click to Access Files</h2>
+                <div class="members">
+                    <div class="member-card" onclick="showFiles('sarah')">
+                        <div class="member-name">Dr. Sarah Chen</div>
+                        <div class="member-role">Lead Investigator / Parapsychologist</div>
+                        <div class="last-seen">Last Entry: 10/27/25 02:47 AM</div>
+                    </div>
+                    <div class="member-card" onclick="showFiles('marcus')">
+                        <div class="member-name">Marcus Rodriguez</div>
+                        <div class="member-role">Equipment Specialist / Audio Analysis</div>
+                        <div class="last-seen">Last Entry: 10/27/25 03:15 AM</div>
+                    </div>
+                    <div class="member-card" onclick="showFiles('emily')">
+                        <div class="member-name">Emily Watson</div>
+                        <div class="member-role">Historical Researcher / Archivist</div>
+                        <div class="last-seen">Last Entry: 10/27/25 03:33 AM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sarah's Files -->
+            <div id="sarah-files" class="file-section">
+                <button class="back-btn" onclick="showMemberList()">← Back to Team Members</button>
+                <div class="file-header">
+                    <h2>Dr. Sarah Chen - Research Log</h2>
+                    <p style="color: #888; margin-top: 10px;">Ph.D. Parapsychology, University of Edinburgh</p>
+                </div>
+
+                <div class="file-entry">
+                    <h3>Initial Site Assessment - Love Library After Hours</h3>
+                    <div class="timestamp">October 26, 2025 - 11:45 PM</div>
+                    <div class="file-content">
+                        Security let us in for overnight investigation. EMF readings are inexplicable - baseline 15mG throughout the building, spiking to 80mG near the basement archives. The library's electrical systems can't account for this. Marcus confirmed all our equipment is functioning correctly. 
+                        
+                        Temperature anomalies concentrated in the stacks. Level 3 South reads 42°F, dropping to 28°F near the restricted Heritage Room. No HVAC malfunction found. Emily discovered that the original 1943 library building plans show a sealed sub-basement that doesn't appear in current blueprints.
+                        
+                        The Pattern we've been tracking across campus... it's strongest here. The library isn't just part of it - it might be the center.
+                    </div>
+                </div>
+
+                <div class="file-entry">
+                    <h3>EVP Session #1 - Heritage Room</h3>
+                    <div class="timestamp">October 27, 2025 - 12:30 AM</div>
+                    <div class="file-content">
+                        Conducted 45-minute EVP session in the TK. Upon playback, we captured multiple Class-A responses:
+                        
+                        Question: "Is anyone here with us?"
+                        Response: "Always reading"
+                        
+                        Question: "What is your name?"
+                        Response: [STATIC] followed by what sounds like "The books remember everything"
+                        
+                        Marcus is analyzing the frequencies. The voices appear to be overlapping - possibly multiple entities speaking simultaneously. One voice keeps repeating call numbers: "QH 31 .D2", "BF 1028 .N4", "Z 721 .U5". Emily is checking what books these correspond to.
+                    </div>
+                </div>
+
+                <div class="file-entry">
+                    <h3>URGENT - Final Entry</h3>
+                    <div class="timestamp">October 27, 2025 - 02:47 AM</div>
+                    <div class="file-content">
+                        Something is wrong. The library's layout has changed. The stairwell we used to reach Level 4 now leads to a wall. Emily's compass is spinning wildly in the stacks. Marcus's equipment is picking up a frequency we've never encountered - it's almost like <span class="redacted">pages turning backwards</span>.
+                        
+                        We found fresh writing in the margins of random books throughout Stack Level 2 East - all in different handwriting, all saying "THE NINTH LOCATION OPENS AT 3:33." But our map only shows nine locations, not a tenth.
+                        
+                        If anyone finds this, complete the investigation but DO NOT enter the service tunnels alone. The library doesn't want us to leave. I can hear them in the walls now - no, not in the walls. In the books. Every book. They're all whispering our names.
+                        
+                        The Pattern is complete. We're part of the collection now.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Marcus's Files -->
+            <div id="marcus-files" class="file-section">
+                <button class="back-btn" onclick="showMemberList()">← Back to Team Members</button>
+                <div class="file-header">
+                    <h2>Marcus Rodriguez - Technical Log</h2>
+                    <p style="color: #888; margin-top: 10px;">M.S. Electrical Engineering, MIT</p>
+                </div>
+
+                <div class="file-entry">
+                    <h3>Equipment Anomalies - Multiple Locations</h3>
+                    <div class="timestamp">October 27, 2025 - 12:15 AM</div>
+                    <div class="file-content">
+                        All devices experiencing simultaneous interference at the nine marked locations. Frequency analysis shows:
+                        - Consistent 19Hz infrasound (below human hearing threshold) in the stacks
+                        - Electromagnetic pulses every 13 seconds near Special Collections
+                        - Radio frequencies detecting voices on dead channels in the Link Gallery
+                        
+                        The library's infrastructure can't explain this. Wi-Fi routers, security systems, even the RFID book tags - nothing accounts for these readings. Battery drain is 300% above normal near the service tunnel access. Brought extra power banks but they're depleting rapidly.
+                        
+                        Note: Stack Level 2 East (Location 8) shows the strongest readings. This is where The Pattern was first documented.
+                    </div>
+                </div>
+
+                <div class="file-entry">
+                    <h3>Audio Phenomenon - Adele Hall Learning Commons</h3>
+                    <div class="timestamp">October 27, 2025 - 01:45 AM</div>
+                    <div class="file-content">
+                        Recorded what I can only describe as "impossible audio" at Location 6. The sound is coming from inside the walls - not through them, but originating within the structure itself. Spectral analysis shows frequencies that shouldn't exist together. It's like multiple time periods overlapping.
+                        
+                        At 01:32 AM, all recording devices simultaneously played back conversations we haven't had yet. Sarah's voice saying "Check the call numbers in the basement archives" - but she hasn't said that. The timestamp on the recording shows October 28, 2025.
+                        
+                        The nine locations are connected. Each one emits a specific frequency. When mapped together, they form a harmonic sequence. It's almost like... the library is trying to tell us something.
+                    </div>
+                </div>
+
+                <div class="file-entry">
+                    <h3>Emergency Transmission</h3>
+                    <div class="timestamp">October 27, 2025 - 03:15 AM</div>
+                    <div class="file-content">
+                        [AUTOMATED TRANSCRIPT FROM EMERGENCY BEACON]
+                        
+                        This is Marcus Rodriguez, UNL Paranormal Research. Emergency beacon activated. GPS coordinates <span class="redacted">showing impossible values</span>. We're not in the library anymore. Or we are. Both. Neither.
+                        
+                        Sarah found a tenth location. It wasn't on our map. Behind a bookshelf in the basement archives - a door that shouldn't exist. The books near it are all blank now, but when you're not looking directly at them, you can see text moving across the pages.
+                        
+                        The equipment is recording every conversation that's ever happened in this library. Thousands of voices, all at once. Students studying, researchers working, whispered secrets between the stacks. They're all still here. They never left.
+                        
+                        The nine locations were a key. We unlocked something. This message will repeat every 30 seconds until battery depletion.
+                        
+                        [SIGNAL LOST - LOCATION: STACK LEVEL ∞]
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emily's Files -->
+            <div id="emily-files" class="file-section">
+                <button class="back-btn" onclick="showMemberList()">← Back to Team Members</button>
+                <div class="file-header">
+                    <h2>Emily Watson - Historical Research Notes</h2>
+                    <p style="color: #888; margin-top: 10px;">M.A. History & Archival Sciences, UNL</p>
+                </div>
+
+                <div class="file-entry">
+                    <h3>Love Library Historical Anomalies</h3>
+                    <div class="timestamp">October 26, 2025 - 10:00 PM</div>
+                    <div class="file-content">
+                        Don L. Love Memorial Library - Opened 1943, expanded 1973, renovated 2010. Official records show normal academic library, but university archives reveal disturbing pattern:
+                        
+                        - 1952: Three graduate students vanished while researching in the stacks. Personal items found arranged in The Pattern.
+                        - 1967: Librarian Margaret Hayes reported "books writing themselves" before her sudden resignation
+                        - 1981: Mass hallucination event - 17 students claimed to see "the same figure" simultaneously in different locations
+                        - 1999: Entire night shift reported hearing voices calling their names from closed stacks
+                        - 2010: During renovation, workers found hidden room with walls covered in library call numbers
+                        
+                        Cross-referenced disappearances with library logs. All missing persons had checked out books from the same nine sections - now our investigation locations.
+                    </div>
+                </div>
+
+                <div class="file-entry">
+                    <h3>The Pattern Discovery - Stack Level 2 East</h3>
+                    <div class="timestamp">October 27, 2025 - 02:00 AM</div>
+                    <div class="file-content">
+                        Found it at Location 8. The Pattern is everywhere once you know what to look for. It's in the arrangement of books on shelves, the wear patterns on the floor, the distribution of study carrels. It's not random. It's deliberate.
+                        
+                        Found a journal hidden behind call number <span class="redacted">Z 666.13</span> written by former librarian M. Hayes (1967):
+                        "The library is not haunted. The library IS the haunting. A living archive feeding on knowledge and memory. The Pattern is its catalog system. Once you understand it, you become part of the collection."
+                        
+                        I've been tracking our path through the nine locations. We've been walking in The Pattern for the last two hours without realizing it. Each location corresponds to a Dewey Decimal class. When connected, they spell out a call number: <span class="redacted">133.1 D343</span>
+                        
+                        That book doesn't exist in our catalog. But I think I know where to find it.
+                    </div>
+                </div>
+
+                <div class="file-entry">
+                    <h3>Final Research Entry - The Tenth Location</h3>
+                    <div class="timestamp">October 27, 2025 - 03:33 AM</div>
+                    <div class="file-content">
+                        I understand now. The missing students, the librarians, our team - we're all part of the same collection, just filed under different call numbers. The library exists across multiple dimensions of information space.
+                        
+                        Found the impossible book. Call number 133.1 D343: "Dimensional Cataloging Systems" by E. Watson. Published 2025. I wrote it. I will write it. I am writing it now.
+                        
+                        The nine locations weren't hauntings. They were checkout stations. Each visitor who completes the sequence becomes a permanent part of the collection. We're not lost. We're archived.
+                        
+                        The others can't see me anymore, but I can see all of them - every student who ever studied here, every researcher who ever got lost in the stacks. We're all here, between the pages, in the margins, waiting.
+                        
+                        If you're reading this, you've already started the sequence. The Pattern has your library card now. Due date: Never. Location: Stack Level ∞
+                        
+                        Welcome to the Love Library permanent collection.
+                        
+                        [Auto-saved at 03:33:33 AM]
+                        [Location: THE SPACE BETWEEN THE SHELVES]
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>University of Nebraska-Lincoln | Department of <span class="redacted">Paranormal Studies</span> | Love Library Special Investigation Unit</p>
+            <p>Case Status: OPEN | Investigation Status: REQUIRES FIELD WORK | ARG Sequence: ACTIVE</p>
+            <p style="margin-top: 10px; color: #ff3333;">Complete the nine-location sequence to unlock the truth.</p>
+            <p style="margin-top: 5px; font-size: 0.8em; color: #666;">Missing: S. Chen, M. Rodriguez, E. Watson | Last seen: Love Library Stacks | If found, do not approach - they may not be themselves anymore.</p>
+        </footer>
+    </div>
+
+    <script>
+        function showFiles(member) {
+            document.getElementById('member-list').style.display = 'none';
+            document.querySelectorAll('.file-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(member + '-files').classList.add('active');
+            window.scrollTo(0, 0);
+            
+            // Add creepy effect
+            document.body.style.filter = 'brightness(0.8)';
+            setTimeout(() => {
+                document.body.style.filter = 'brightness(1)';
+            }, 100);
+        }
+
+        function showMemberList() {
+            document.getElementById('member-list').style.display = 'block';
+            document.querySelectorAll('.file-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            window.scrollTo(0, 0);
+        }
+
+        // Random glitch effect
+        setInterval(() => {
+            if (Math.random() > 0.95) {
+                document.body.style.filter = 'invert(1)';
+                setTimeout(() => {
+                    document.body.style.filter = 'invert(0)';
+                }, 50);
+            }
+        }, 3000);
+
+        // Creepy console message
+        console.log('%cTHEY ARE STILL IN THE BUILDING', 'color: red; font-size: 20px; font-weight: bold;');
+        console.log('%cDO NOT LOOK FOR THE PATTERN', 'color: red; font-size: 16px;');
+    </script>
+</body>
+</html>
